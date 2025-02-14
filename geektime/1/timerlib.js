@@ -1,5 +1,3 @@
-
-
 const EventEmitter = require('events').EventEmitter;
 
 class Geektime extends EventEmitter {

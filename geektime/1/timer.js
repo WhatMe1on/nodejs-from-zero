@@ -6,5 +6,4 @@ geekTime.addListener('newLesson', (res) => {
     } else {
         console.log('yeah!', res)
     }
-
 })
