@@ -1,23 +1,28 @@
 
 (function () {
-    var promise = interview();
-    var promise2 = promise
-        .catch((res) => {
-            return 'happy'
+    var promise = interview(1)
+        .then(() => {
+            return interview(2)
+        })
+        .then(() => {
+            return interview(3)
+        })
+        .then(() => {
+            console.log('smile')
+        })
+        .catch((err) => {
+            console.log('cry at' + 'round' + err.round)
         })
 
-    setTimeout(() => {
-        console.log(promise);
-        console.log(promise2);
-    }, 800)
-
-    function interview() {
+    function interview(round) {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                if (Math.random() < 0) {
+                if (Math.random() < 0.9) {
                     resolve('success');
                 } else {
-                    reject(new Error('fail'));
+                    var err = new Error('fail');
+                    err.round = round;
+                    reject(err);
                 }
             }, 500)
         })
