@@ -1,19 +1,25 @@
 
-interview(function (res) {
-    if (res) {
-        console.log(res)
-    } else {
-        console.log('xiao')
-    }
-})
+(function () {
+    var promise = interview();
+    var promise2 = promise
+        .catch((res) => {
+            return 'happy'
+        })
 
-
-function interview(callback) {
     setTimeout(() => {
-        if (Math.random() < 0.3) {
-            callback(null, 'success');
-        } else {
-            callback(new Error('fail'));
-        }
-    }, 500)
-}
+        console.log(promise);
+        console.log(promise2);
+    }, 800)
+
+    function interview() {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (Math.random() < 0) {
+                    resolve('success');
+                } else {
+                    reject(new Error('fail'));
+                }
+            }, 500)
+        })
+    }
+})();
