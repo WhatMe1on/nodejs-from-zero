@@ -1,27 +1,24 @@
 
 (function () {
-    var promise = interview(1)
-        .then(() => {
-            return interview(2)
-        })
-        .then(() => {
-            return interview(3)
-        })
+    Promise.all([
+        interview('geekbang'),
+        interview('tencent')
+    ])
         .then(() => {
             console.log('smile')
         })
         .catch((err) => {
-            console.log('cry at' + 'round ' + err.round)
+            console.log('cry for ' + err.name)
         })
 
-    function interview(round) {
+    function interview(name) {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 if (Math.random() < 0.9) {
                     resolve('success');
                 } else {
                     var err = new Error('fail');
-                    err.round = round;
+                    err.name = name;
                     reject(err);
                 }
             }, 500)
