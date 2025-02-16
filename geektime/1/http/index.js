@@ -1,6 +1,6 @@
 const fs = require('fs');
-const express = require('express')
-
+const koa = require('koa')
+const mount = require('koa-mount')
 const game = require('./lib');
 
 const ip = '172.27.89.210'
@@ -10,41 +10,49 @@ let playerWon = 0;
 let prevAction = null;
 let sameCount = 0;
 
-const app = express();
+const app = new koa();
+const gameKoa = new koa();
 
 app.listen(port, ip, () => {
     console.log(`http://${ip}:${port}/`)
 })
 
-app.get('/favicon.ico', function (req, res) {
-    res.status(200);
-    return;
-})
+app.use(
+    mount('/favicon.ico', function (ctx) {
+        ctx.status = 200;
+    })
+)
 
+app.use(
+    mount('/game', gameKoa)
+)
 
-app.get('/', function (req, res) {
-    res.send(fs.readFileSync(__dirname + '/index.html', 'utf-8'));
-    // fs.ReadStream(__dirname + '/index.html').pipe(res);
-})
+app.use(
+    mount('/', function (ctx) {
+        ctx.body = fs.readFileSync(__dirname + '/index.html', 'utf-8')
+    })
+)
 
-app.get('/game',
-    function (req, res, next) {
-        if (playerWon > 3) {
-            res.status(500)
-            res.send('bu he niwanle')
+gameKoa.use(
+    async function (ctx, next) {
+        if (playerWon >= 3) {
+            ctx.status = 500
+            ctx.body = '不和你玩'
             return
         }
 
-        if (res.won) {
+        await next()
+        console.log(ctx.won)
+
+        if (ctx.won) {
             console.log(playerWon)
             playerWon++;
         }
+    });
 
-        next()
-    },
-
-    function (req, res, next) {
-        const query = req.query;
+gameKoa.use(
+    async function (ctx, next) {
+        const query = ctx.query;
         const playerAction = query.action;
         if (prevAction && prevAction == playerAction) {
             sameCount++;
@@ -54,26 +62,37 @@ app.get('/game',
         prevAction = playerAction;
 
         if (sameCount > 52) {
-            res.status(500)
-            res.send('huan ge si lu')
+            ctx.status = 500
+            ctx.body = '换个思路'
             return
         }
 
-        res.playerAction = playerAction
-        next();
-    },
-    function (req, res) {
-        const playerAction = res.playerAction;
-        const gameResult = game(playerAction);
-        res.status(200)
-        if (gameResult == 0) {
-            res.send('平局');
-        } else if (gameResult == 1) {
-            res.send('你赢了');
-            res.won = true;
-        } else {
-            res.send('你输了');
-        }
-    }
+        ctx.playerAction = playerAction
+        console.log(playerAction)
+        await next();
+    });
 
+gameKoa.use(
+    async function (ctx, next) {
+        const playerAction = ctx.playerAction;
+        const gameResult = game(playerAction);
+
+        console.log(gameResult)
+        await new Promise(resolve => {
+            setTimeout(() => {
+                ctx.status = 200
+                if (gameResult == 0) {
+                    ctx.body = '平局'
+                } else if (gameResult == 1) {
+                    ctx.body = '你赢了'
+                    ctx.won = true;
+                } else {
+                    ctx.body = '你输了'
+                }
+
+                resolve();
+            }, 500)
+
+        })
+    }
 )

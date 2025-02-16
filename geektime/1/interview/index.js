@@ -1,20 +1,15 @@
 
-(function () {
-    Promise.all([
-        interview('geekbang'),
-        interview('tencent')
-    ])
-        .then(() => {
-            console.log('smile')
-        })
-        .catch((err) => {
-            console.log('cry for ' + err.name)
-        })
+(async function () {
+    try {
+        await Promise.all([interview(1), interview(2)])
+    } catch (e) {
+        return console.log('cry at ' + e.name)
+    }
 
     function interview(name) {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                if (Math.random() < 0.9) {
+                if (Math.random() < 0.2) {
                     resolve('success');
                 } else {
                     var err = new Error('fail');
